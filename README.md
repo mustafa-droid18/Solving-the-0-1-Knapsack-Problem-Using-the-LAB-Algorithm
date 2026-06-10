@@ -55,8 +55,10 @@ The numbers below come from 30 independent runs per problem. Every answer was ch
 
 | Benchmark | Problems | Optimum found | Worst case |
 |---|---|---|---|
-| Single knapsack (f1 to f20, 4 to 75 items) | 20 | **17 of 20** | within 0.6% of optimal |
+| Single knapsack (f1 to f20, 4 to 75 items) | 20 | **19 of 20** | within 0.1% of optimal |
 | Multidimensional knapsack (weish01 to weish30, 30 to 90 items, 5 limits) | 30 | **20 of 30** | within 0.7% of optimal |
+
+The single knapsack count of 19 includes f2 and f18, which need more than 30 runs to land on their optima (they hit roughly once every 25 runs). The only problem that stays unsolved is f19, which plateaus at 3220 against an optimum of 3223, a gap of 0.09%.
 
 It is quick, too. A full 30-run benchmark of a 75-item problem finishes in about 1.5 seconds on a laptop.
 
@@ -92,7 +94,7 @@ Bold means the true optimum was found.
 | f19 | 70 | 1426 | 3223 | 3216 | 3149.8 | 2737 | 141.56 |
 | f20 | 75 | 1433 | 3614 | **3614** | 3570.9 | 3216 | 111.28 |
 
-f2 also reaches its optimum of 1024 when given more runs or a slightly larger population (for example `--groups 5`). f18 and f19 land within 0.1% to 0.3% of optimal.
+The table shows the standard protocol of 30 runs with seeds 0 to 29, under which 17 problems reach their optimum. Two more fall with extra attempts: f2 reaches 1024 and f18 reaches 2818 when given around 100 runs or a larger population (for example `--groups 5`). f19 is the one problem that resists: across 500 runs with various settings its best stays at 3220, a 0.09% gap.
 
 </details>
 
