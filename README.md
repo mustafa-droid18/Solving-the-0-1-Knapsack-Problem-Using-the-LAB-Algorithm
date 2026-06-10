@@ -1,108 +1,75 @@
-# Solving the 0-1 Knapsack Problem Using the LAB Algorithm
+<div align="center">
+
+# Solving the 0-1 Knapsack Problem with the LAB Algorithm
 
 [![CI](https://github.com/mustafa-droid18/Solving-the-0-1-Knapsack-Problem-Using-the-LAB-Algorithm/actions/workflows/ci.yml/badge.svg)](https://github.com/mustafa-droid18/Solving-the-0-1-Knapsack-Problem-Using-the-LAB-Algorithm/actions/workflows/ci.yml)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Paper](https://img.shields.io/badge/LAB%20paper-Soft%20Computing%202023-b31b1b.svg)](https://link.springer.com/article/10.1007/s00500-023-08033-y)
+[![Book chapter](https://img.shields.io/badge/Springer-Handbook%20of%20Formal%20Optimization-blue.svg)](https://link.springer.com/rwe/10.1007/978-981-97-3820-5_59)
 
-A fast, tested Python implementation of the **LAB (Leader–Advocate–Believer) algorithm** — a socio-inspired metaheuristic — applied to the **single** and **multidimensional (multiple) 0-1 knapsack problems**.
+A fast, tested Python implementation of the Leader-Advocate-Believer (LAB) algorithm,
+applied to the single and multidimensional 0-1 knapsack problems.
 
-Companion code for the book chapter: **Poonawala, M. & Kulkarni, A.J. (2024). [Solving the 0–1 Knapsack Problem Using LAB Algorithm](https://link.springer.com/rwe/10.1007/978-981-97-3820-5_59). In *Handbook of Formal Optimization*, Springer Nature Singapore, pp. 955–978.**
+</div>
+
+This repository is the companion code for the book chapter:
+
+> Poonawala, M. & Kulkarni, A.J. (2024). [Solving the 0-1 Knapsack Problem Using LAB Algorithm](https://link.springer.com/rwe/10.1007/978-981-97-3820-5_59). In *Handbook of Formal Optimization*, Springer Nature Singapore, pp. 955-978.
+
+## The problem, in plain words
+
+Imagine a backpack that can only carry a limited weight. You have a pile of items, and each one has a weight and a value. Which items should you pack to get the most value without going over the limit? That is the knapsack problem.
+
+It sounds simple, but it gets out of hand quickly. With 75 items there are more possible combinations than atoms in a human body, so checking every option is impossible. The same puzzle shows up everywhere in the real world: loading cargo, allocating budgets, picking investments.
+
+The multidimensional version is the same idea with several limits at once. Think of a backpack with a weight limit, a volume limit, and a size limit, where every item counts against all of them at the same time.
+
+## The algorithm, in plain words
+
+LAB is inspired by how people improve inside a group. The population of candidate solutions is split into teams, and every team member gets a role based on how good their solution is:
+
+- The **Leader** has the best solution in the team. Leaders learn from the best solution found anywhere (the global leader).
+- The **Advocate** has the second best. Advocates learn from their team's leader.
+- The **Believers** are everyone else. They learn from their leader and advocate.
+
+Each round, every member moves their solution a little closer to the people above them, with a touch of randomness so the teams do not all rush to the same answer. If a solution packs too much, a repair step removes the least valuable items until it fits.
+
+One more trick matters a lot: when progress stalls, the algorithm gives the best solution a shake. It forces a handful of unpacked items into the bag and lets the repair step sort out what no longer fits. That little jolt is often exactly what is needed to escape a dead end and find a better packing.
+
+```mermaid
+flowchart TD
+    A["Create random solutions"] --> B["Split into teams and assign roles<br>(Leader, Advocate, Believers)"]
+    B --> C["Everyone updates their solution<br>by learning from better roles"]
+    C --> D["Repair: remove items until<br>everything fits the limits"]
+    D --> E{"Progress stalled?"}
+    E -- yes --> F["Shake the best solution:<br>force a few items in, repair again"]
+    E -- no --> G{"Done iterating?"}
+    F --> G
+    G -- no --> C
+    G -- yes --> H["Return the best solution found"]
+```
+
+## Results
+
+The numbers below come from 30 independent runs per problem. Every answer was checked against the true optimum: for the single knapsack problems we computed the optima exactly with dynamic programming, and for the multidimensional ones the optima come from the standard SAC-94 benchmark files.
+
+| Benchmark | Problems | Optimum found | Worst case |
+|---|---|---|---|
+| Single knapsack (f1 to f20, 4 to 75 items) | 20 | **17 of 20** | within 0.6% of optimal |
+| Multidimensional knapsack (weish01 to weish30, 30 to 90 items, 5 limits) | 30 | **20 of 30** | within 0.7% of optimal |
+
+It is quick, too. A full 30-run benchmark of a 75-item problem finishes in about 1.5 seconds on a laptop.
 
 ![Convergence of the LAB algorithm](assets/convergence.png)
 
-## Highlights
-
-- **Finds the exact optimum on 17 of 20 single-knapsack benchmarks** (f1–f20), with worst-case gap under 0.6% on the rest — verified against optima computed by exact dynamic programming.
-- **Finds the true optimum on 20 of 30 `weish` multidimensional benchmarks** (30–90 items, 5 constraints), with a worst-case gap of 0.70%.
-- **Fast**: a full 30-run benchmark of a 75-item problem takes ~1.5 seconds (≈0.05 s per run).
-- Clean package with a CLI, a small NumPy-only core, a pytest suite, and CI.
-- The original research notebooks are preserved (and bug-fixed) in their own folders.
-
-## How the LAB algorithm works
-
-LAB ([Reddy, Kulkarni, Krishnasamy, Shastri & Gandomi, *Soft Computing* 2023](https://link.springer.com/article/10.1007/s00500-023-08033-y)) models a population of individuals competing in groups while improving themselves. Each group has one **Leader**, one **Advocate**, and several **Believers**. Every iteration, each role moves to a weighted combination of the others:
-
-```mermaid
-flowchart LR
-    GL([Global Leader]) -->|w1| L[Leader]
-    A[Advocate] -->|w1| L
-    B[Believers' mean] -->|w1| L
-    L -->|w2| A2[Advocate']
-    B -->|w2| A2
-    L -->|w3| B2[Believers']
-    A -->|w3| B2
-```
-
-- **Leader** ← blend of the *global* leader, its group's advocate, and the mean of the believers.
-- **Advocate** ← blend of its group's leader and the believers' mean.
-- **Believers** ← blend of their group's leader and advocate.
-
-The blend weights are random, normalised, and sorted so the strongest pull always comes from the better role — driving exploitation while the multi-group structure preserves exploration.
-
-Two knapsack-specific ingredients complete the solver:
-
-1. **Greedy repair** — candidate solutions are continuous vectors (item *i* is packed when `x[i] ≥ 50`); overweight selections are repaired by dropping items with the lowest value-to-weight ratio (single knapsack) or randomly with an exponential bias toward inefficient items (multiple knapsack).
-2. **Leader perturbation** — when the best value saturates, the working leader gets a strong kick: a dozen unpacked items are switched on and the repair operator prunes the result back to feasibility. This is what lets LAB escape local optima.
-
-## Installation
-
-```bash
-git clone https://github.com/mustafa-droid18/Solving-the-0-1-Knapsack-Problem-Using-the-LAB-Algorithm.git
-cd Solving-the-0-1-Knapsack-Problem-Using-the-LAB-Algorithm
-pip install -e .            # core (NumPy only)
-pip install -e ".[dev]"     # + pytest
-pip install -e ".[notebooks]"  # + pandas/matplotlib/seaborn/jupyter
-```
-
-## Quickstart
-
-### Command line
-
-```console
-$ lab-knapsack single f17 --runs 30 --seed 0
-Instance f17: 60 items, capacity 1006
-Runs               : 30
-Iterations per run : 250
-Best               : 2917
-Mean               : 2917
-...
-Known optimum      : 2917  (gap 0.00%)
-
-$ lab-knapsack multiple "Multiple Knapsack Problem/Dataset/weish01.dat" --runs 30 --seed 0
-Instance ...weish01.dat: 30 items, 5 constraints
-Best               : 4554
-Known optimum      : 4554  (gap 0.00%)
-```
-
-### Python API
-
-```python
-from lab_knapsack import LAB, SingleKnapsack, load_f_instance, load_weish
-
-# A built-in benchmark…
-problem = load_f_instance("f17")
-result = LAB(problem, seed=42).solve(iterations=250)
-print(result.best_value)                              # 2917.0
-print(problem.to_input_order(result.best_selection))  # 0/1 vector per item
-
-# …or your own problem
-problem = SingleKnapsack(weights=[95, 4, 60, 32], values=[55, 10, 47, 5], capacity=130)
-result = LAB(problem, seed=0).solve()
-```
-
-## Benchmark results
-
-All numbers below come from 30 independent runs per instance (seeds 0–29; single: 250 iterations, multiple: 50 iterations) using the commands shown above. Best values are stable across sweeps; multiple-knapsack means can vary slightly because the repair operator is stochastic. Optima for the integer single-knapsack instances were verified with an exact dynamic-programming solver; the `weish` optima come from the SAC-94 dataset headers.
-
-### Single 0-1 knapsack (f1–f20)
-
-Optimum found on **17 / 20** instances.
-
 <details>
-<summary>Full results table</summary>
+<summary><b>Full results: single knapsack (f1 to f20)</b></summary>
 
-| Instance | Items | Capacity | Optimum | Best | Mean | Worst | Std |
+<br>
+
+Bold means the true optimum was found.
+
+| Problem | Items | Capacity | Optimum | Best | Mean | Worst | Std |
 |---|---|---|---|---|---|---|---|
 | f1 | 10 | 269 | 295 | **295** | 292.0 | 290 | 1.63 |
 | f2 | 20 | 878 | 1024 | 1018 | 1018.0 | 1018 | 0.00 |
@@ -125,20 +92,18 @@ Optimum found on **17 / 20** instances.
 | f19 | 70 | 1426 | 3223 | 3216 | 3149.8 | 2737 | 141.56 |
 | f20 | 75 | 1433 | 3614 | **3614** | 3570.9 | 3216 | 111.28 |
 
-f2's optimum (1024) is reached with a larger seed pool or population (e.g. `--groups 5`); f18 and f19 land within 0.1–0.3% of optimal.
+f2 also reaches its optimum of 1024 when given more runs or a slightly larger population (for example `--groups 5`). f18 and f19 land within 0.1% to 0.3% of optimal.
 
 </details>
 
-### Multidimensional 0-1 knapsack (weish01–weish30)
-
-True optimum found on **20 / 30** instances; worst-case gap **0.70%**. The packaged solver improves on the original notebook results for **every instance** (the notebook's best gaps ranged from 1.45% to 13.99%).
-
-Why the improvement: the original notebook's `initial_values` added +1 to every weight (a workaround for zero weights in the ratio sort) while keeping capacities unchanged, which made the true optima of most instances infeasible by construction — e.g. the best feasible values of the inflated weish17/weish30 instances are exactly the 8586/11052 the notebook reported. The package keeps the data exact and handles zero weights directly in the sort; it also fixes a loop-variable bug that prevented the leader-perturbation step from ever running, and reports the best solution found across all iterations rather than the final one.
-
 <details>
-<summary>Full results table</summary>
+<summary><b>Full results: multidimensional knapsack (weish01 to weish30)</b></summary>
 
-| Instance | Items | Optimum | Best | Gap | Mean | Std |
+<br>
+
+Bold means the true optimum was found.
+
+| Problem | Items | Optimum | Best | Gap | Mean | Std |
 |---|---|---|---|---|---|---|
 | weish01 | 30 | 4554 | **4554** | 0.00% | 4385.9 | 115.41 |
 | weish02 | 30 | 4536 | 4531 | 0.11% | 4510.7 | 27.42 |
@@ -173,28 +138,77 @@ Why the improvement: the original notebook's `initial_values` added +1 to every 
 
 </details>
 
-Raw sweep output: [assets/benchmark_results.json](assets/benchmark_results.json).
+Raw output of the full sweep: [assets/benchmark_results.json](assets/benchmark_results.json)
 
-## Repository structure
+### A note on the original notebook results
 
-```
-lab_knapsack/                  # the solver package
-├── core.py                    #   LAB engine (roles, updates, perturbation)
-├── problems.py                #   knapsack models: decode, repair, feasibility
-├── datasets.py                #   f1–f20 instances + SAC-94 weish parser
-└── cli.py                     #   lab-knapsack command
-tests/                         # pytest suite (runs in CI)
-Single Knapsack Problem/       # original research notebook + results
-Multiple Knapsack Problem/     # original research notebook, weish data + results
-assets/                        # plots and raw benchmark output
+The multidimensional results published with the original notebooks never reached the true optima, and the reason turned out to be a small data bug, not the algorithm. A line in the setup code quietly added 1 to every item weight (it was a workaround for items with zero weight), so the code was solving a slightly harder problem than the real benchmark. For most instances the true optimum did not even fit under those inflated weights, which put a hard ceiling on the scores. This package keeps the benchmark data exact, fixes a loop bug that had disabled the shake step, and always reports the best solution found rather than the last one. With those corrections, the same LAB design reaches the true optimum on 20 of the 30 problems.
+
+## Installation
+
+```bash
+git clone https://github.com/mustafa-droid18/Solving-the-0-1-Knapsack-Problem-Using-the-LAB-Algorithm.git
+cd Solving-the-0-1-Knapsack-Problem-Using-the-LAB-Algorithm
+pip install -e .
 ```
 
-## Notebooks
+The core only needs NumPy. Two optional extras are available:
 
-The original Jupyter notebooks document the research step-by-step with full mathematical explanations — open them on GitHub or run them locally with `pip install -e ".[notebooks]"`:
+```bash
+pip install -e ".[dev]"        # adds pytest
+pip install -e ".[notebooks]"  # adds pandas, matplotlib, seaborn, jupyter
+```
 
-- [`Single_Knapsack_Problem.ipynb`](Single%20Knapsack%20Problem/Single_Knapsack_Problem.ipynb)
-- [`Multiple_Knapsack_Problem.ipynb`](Multiple%20Knapsack%20Problem/Multiple_Knapsack_Problem.ipynb)
+## Usage
+
+### From the command line
+
+```console
+$ lab-knapsack single f17 --runs 30 --seed 0
+Instance f17: 60 items, capacity 1006
+Best               : 2917
+Known optimum      : 2917  (gap 0.00%)
+
+$ lab-knapsack multiple "Multiple Knapsack Problem/Dataset/weish01.dat" --runs 30 --seed 0
+Instance ...weish01.dat: 30 items, 5 constraints
+Best               : 4554
+Known optimum      : 4554  (gap 0.00%)
+```
+
+### From Python
+
+```python
+from lab_knapsack import LAB, SingleKnapsack, load_f_instance, load_weish
+
+# Solve a built-in benchmark
+problem = load_f_instance("f17")
+result = LAB(problem, seed=42).solve(iterations=250)
+print(result.best_value)                              # 2917.0
+print(problem.to_input_order(result.best_selection))  # 0/1 choice for each item
+
+# Or bring your own problem
+problem = SingleKnapsack(weights=[95, 4, 60, 32], values=[55, 10, 47, 5], capacity=130)
+result = LAB(problem, seed=0).solve()
+```
+
+## What is in this repository
+
+```
+lab_knapsack/                  the solver package
+├── core.py                    LAB engine: roles, updates, the shake step
+├── problems.py                knapsack models: scoring and repair
+├── datasets.py                f1-f20 instances plus a weish file parser
+└── cli.py                     the lab-knapsack command
+tests/                         pytest suite, runs in CI on every push
+Single Knapsack Problem/       original research notebook and results
+Multiple Knapsack Problem/     original research notebook, weish data, results
+assets/                        plots and raw benchmark output
+```
+
+The two Jupyter notebooks document the original research step by step and are kept as a readable walkthrough of how the method was developed:
+
+- [Single_Knapsack_Problem.ipynb](Single%20Knapsack%20Problem/Single_Knapsack_Problem.ipynb)
+- [Multiple_Knapsack_Problem.ipynb](Multiple%20Knapsack%20Problem/Multiple_Knapsack_Problem.ipynb)
 
 ## Running the tests
 
@@ -205,11 +219,11 @@ pytest tests/ -v
 
 ## Citation
 
-If you use this code, please cite the book chapter it accompanies:
+If you use this code, please cite the book chapter:
 
 ```bibtex
 @incollection{poonawala2024knapsack,
-  title     = {Solving the 0--1 Knapsack Problem Using LAB Algorithm},
+  title     = {Solving the 0-1 Knapsack Problem Using LAB Algorithm},
   author    = {Poonawala, Mustafa and Kulkarni, Anand J},
   booktitle = {Handbook of Formal Optimization},
   pages     = {955--978},
@@ -218,11 +232,11 @@ If you use this code, please cite the book chapter it accompanies:
 }
 ```
 
-and the original LAB algorithm paper:
+and the paper that introduced the LAB algorithm:
 
 ```bibtex
 @article{reddy2023lab,
-  title   = {LAB: a leader--advocate--believer-based optimization algorithm},
+  title   = {LAB: a leader-advocate-believer-based optimization algorithm},
   author  = {Reddy, Ruturaj and Kulkarni, Anand J and Krishnasamy, Ganesh and Shastri, Apoorva S and Gandomi, Amir H},
   journal = {Soft Computing},
   volume  = {27},
@@ -234,4 +248,4 @@ and the original LAB algorithm paper:
 
 ## License
 
-[MIT](LICENSE)
+Released under the [MIT License](LICENSE).
