@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lab-knapsack"
+version = "1.0.0"
+description = "LAB (Leader-Advocate-Believer) metaheuristic for single and multidimensional 0-1 knapsack problems"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Mustafa" }]
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.21"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.optional-dependencies]
+notebooks = ["pandas", "matplotlib", "seaborn", "jupyter"]
+dev = ["pytest"]
+
+[project.scripts]
+lab-knapsack = "lab_knapsack.cli:main"
+
+[project.urls]
+Repository = "https://github.com/mustafa-droid18/Solving-the-0-1-Knapsack-Problem-Using-the-LAB-Algorithm"
+
+[tool.setuptools]
+packages = ["lab_knapsack"]
