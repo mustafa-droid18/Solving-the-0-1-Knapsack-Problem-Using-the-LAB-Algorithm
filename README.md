@@ -20,7 +20,7 @@ This repository is the companion code for the book chapter:
 
 Imagine a backpack that can only carry a limited weight. You have a pile of items, and each one has a weight and a value. Which items should you pack to get the most value without going over the limit? That is the knapsack problem.
 
-It sounds simple, but it gets out of hand quickly. With 75 items there are more possible combinations than atoms in a human body, so checking every option is impossible. The same puzzle shows up everywhere in the real world: loading cargo, allocating budgets, picking investments.
+It sounds simple, but it gets out of hand quickly. With 75 items there are more possible combinations than grains of sand on Earth, so checking every option is impossible. The same puzzle shows up everywhere in the real world: loading cargo, allocating budgets, picking investments.
 
 The multidimensional version is the same idea with several limits at once. Think of a backpack with a weight limit, a volume limit, and a size limit, where every item counts against all of them at the same time.
 
@@ -58,7 +58,7 @@ The numbers below come from 30 independent runs per problem. Every answer was ch
 | Single knapsack (f1 to f20, 4 to 75 items) | 20 | **19 of 20** | within 0.1% of optimal |
 | Multidimensional knapsack (weish01 to weish30, 30 to 90 items, 5 limits) | 30 | **20 of 30** | within 0.7% of optimal |
 
-The single knapsack count of 19 includes f2 and f18, which need more than 30 runs to land on their optima (they hit roughly once every 25 runs). The only problem that stays unsolved is f19, which plateaus at 3220 against an optimum of 3223, a gap of 0.09%.
+The single knapsack count of 19 includes f2 and f18, which need more than 30 runs to land on their optima (they hit only about once in every 25 to 40 runs). The only problem that stays unsolved is f19, which plateaus at 3220 against an optimum of 3223, a gap of 0.09%.
 
 It is quick, too. A full 30-run benchmark of a 75-item problem finishes in about 1.5 seconds on a laptop.
 
